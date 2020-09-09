@@ -349,6 +349,8 @@ public class jingdong {
 		curCar.backTime = curCar.curTime;
 	}
 
+	
+	
 	private static int nextSellCharger(CarRoute curCar, List<Node> seller,
 			List<Node> charger, Vector<Vector<java.lang.Integer>> distance,
 			Vector<Vector<java.lang.Integer>> time, Vector<Vehicle> vehicle) {
