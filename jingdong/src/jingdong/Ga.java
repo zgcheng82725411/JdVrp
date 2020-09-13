@@ -1,5 +1,6 @@
 package jingdong;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -7,6 +8,8 @@ import java.util.Vector;
 
 public class Ga {
 
+	
+	
 	// 种群中个体的数量
 	int POPULATION_NUM = 10;
 
@@ -31,6 +34,10 @@ public class Ga {
 	Random random = new Random();
 
 	Vector<Integer> sellMatchCharger; // 下标对应sell的id，内容是 charger的下标
+	
+	Vector<Vehicle> vehicle1 = new Vector<Vehicle>(); // 保存车辆信息
+	
+	
 
 	// 计算sellMatchCharger;下标对应sell的id，内容是 charger的下标
 	public void calSellChargerMatch(Vector<Integer> vec,
@@ -57,55 +64,178 @@ public class Ga {
 		return chargerIndex;
 	}
 
-	// 单个个体，交叉，变异，自我交换的遗传算法
-	public void inheritance(Vector<CarRoute> result,
-			Vector<Vector<Integer>> distance, Vector<Vector<Integer>> time,
-			Vector<Vehicle> vehicle, Vector<Node> nodeList, Vector<Node> charger) {
-		// 单个个体，交叉，变异，自我交换的遗传算法
-		int c = CIRCAL_TIME;
-		while (--c > 0) {
-
-			for (int i = 0; i < result.size(); ++i) {
-				for (int j = 0; j < result.size(); ++j)
-					if (i != j)
-						exchangeCarRoute2(result.get(i), result.get(j),
-								distance, time, vehicle, nodeList, charger); // 交叉操作
-
-			}
-			for (int i = 0; i < result.size(); ++i) {
-				for (int j = 0; j < result.size(); ++j)
-					if (i != j)
-						addOrDeleteCarRoute2(result.get(i), result.get(j),
-								distance, time, vehicle, nodeList, charger); // 变异操作
-
-			}
-			for (int i = 0; i < result.size(); ++i) {
-				selfExchangeCarRoute(result.get(i), distance, time, vehicle,
-						nodeList, charger); // 自我交换
-			}
-			for (int i = 0; i < result.size(); ++i) {
-				selfAddOrDeleteCarRoute(result.get(i), distance, time, vehicle,
-						nodeList, charger); // 自我调整
-			}
-
-			// 每迭代 2 次 ， 写入文件
-			if ((CIRCAL_TIME - c) % 5 == 0) {
-				// vector<CarRoute> tem = result;
-
-				// changeVehicleType(result, distance, vehicle); //转变货车的型号
-				changeVehicleType2(result, distance, time, vehicle, nodeList,
-						charger);
-				deleteEmptyCar(result);
-
-				sort(result.begin(), result.end(), lessVehicleType);
-
-				Vector<AnswerRecord> answer;
-				answer = getAnswer(result, vehicle);
-
-				whrit_answer(answer);
-			}
-		}
+	
+////以种群优化迭代，遗传算法
+private void inheritance(Vector<CarRoute> result,  Vector<Vector<Integer>> distance,
+		Vector<Vector<Integer>> time,  Vector<Vehicle> vehicle,  Vector<Node> nodeList)
+{
+	vehicle1.clear();
+	vehicle1.add(new Vehicle(1, "iveco", 12, 2.0, 100000, 0.5, 0.012, 200));
+	vehicle1.add(new Vehicle(2, "truck", 16, 2.5, 120000, 0.5, 0.014, 300));
+		
+	Vector<Vector<CarRoute>> population = initPopulation(result); //种群初始化
+	//计算适应度
+	
+	List<Fit> fitness = new ArrayList<Fit>();
+	
+	for(int i = 0; i < population.size();i++)
+	{
+		double fits = 1/calAllCost(population.get(i), vehicle);
+		Fit theFit = new Fit();
+		theFit.setRouteList(population.get(i));
+		theFit.setFitness(fits);
+		fitness.add(theFit);
 	}
+	
+	//选出最优的一个，并且轮盘法选出N-1个
+	//Fit sel = selectBest(fitness);
+	List<Fit> newFitness = selectFit(fitness);
+		
+	//随机选2个来交叉变异,最优的不交叉变异。生成种群
+			
+	}
+	// population[0] 比一定是最小的，简单起见，compare只比较总距离
+	
+private Fit selectBest(List<Fit> fitness) {
+	
+	return null;
+}
+
+private List<Fit> selectFit(List<Fit> fitness) {
+	
+	double sum = 0;
+	Fit bestFit = fitness.get(0); 
+	for(int i = 0; i < fitness.size();i++)
+    {
+	    sum += fitness.get(i).getFitness();
+	    if(bestFit.getFitness() < fitness.get(i).getFitness())
+	    {
+	    	bestFit = fitness.get(i);
+	    }
+	}
+	fitness.remove(bestFit);
+	
+	List<Fit> newfitness = new ArrayList<Fit>();
+	newfitness.add(bestFit);
+	double p[] = new double[fitness.size()];
+	//乘以一个系数让总和为1	 
+	for(int i= 0; i < fitness.size(); i++)
+    {
+        p[i] = fitness.get(i).getFitness()/sum;
+    }
+	
+	double sleectP = random.nextFloat();
+    int selectCity = 0;
+    double sum1 = 0;
+    for (int i = 0; i < fitness.size(); i++) {
+        sum1 += p[i];
+        if (sum1 >= sleectP) {
+            selectCity = i;
+            newfitness.add(fitness.get(i));
+            break;
+        }
+    }
+     
+    //最优的保存
+    return newfitness;	
+}
+
+
+
+//单个方案的费用
+	public static double calAllCost( Vector<CarRoute> result,  Vector<Vehicle> vehicle)
+	{
+		////保留两位小数
+		//record.trans_cost = result[i].totalMileage * vehicle[result[i].cartype - 1].unit_trans_cost;
+
+		//record.charge_cost = result[i].chargeNum * 50;
+		////保留两位小数
+		//record.wait_cost = result[i].waitTime * 0.4;
+
+		//record.fixed_use_cost = vehicle[result[i].cartype - 1].vechile_cost;
+		double all_cost = 0;
+		for (int i = 0; i < result.size(); ++i)
+		{
+			all_cost += result.get(i).totalMileage * vehicle.get(result.get(i).cartype - 1).unit_trans_cost;
+			all_cost += result.get(i).chargeNum * 50;
+			all_cost += result.get(i).waitTime * 0.4;
+			all_cost += vehicle.get(result.get(i).cartype - 1).vechile_cost;
+		}
+		return all_cost;
+	}
+	
+
+
+
+//所有操作放到一块，在进行验证
+public void allOperationCarRoute(CarRoute car1, CarRoute car2,  Vector<Vector<Integer>> distance,
+		Vector<Vector<Integer>> time, Vector<Vehicle> vehicle, Vector<Node> nodeList)
+{
+	CarRoute temCar1 =car1;
+	CarRoute temCar2 = car2;
+	double minCost = calOneCost(car1, vehicle) + calOneCost(car2, vehicle);
+	int cir = REPEAT_NUM;
+	while (--cir > 0)
+	{
+		int num = random.nextInt() % CHANGE_NUM + 1;
+		//交叉
+		for (int i = 0; i < num; ++i)
+		{
+			//路径为空的情况
+			if (temCar1.route.size() == 1 || temCar2.route.size() == 1)
+				break;
+			int d1 = random.nextInt() % (temCar1.route.size() - 1) + 1;
+			int d2 = random.nextInt() % (temCar2.route.size() - 1) + 1;
+					
+			int temp = temCar1.route.get(d1);
+			temCar1.route.set(d1, temCar2.route.get(d2));
+			temCar2.route.set(d2, temp);
+		}
+	
+		//变异
+		for (int i = 0; i < num; ++i)
+		{
+			//路径为空的情况
+			if (temCar1.route.size() <= 2)
+				break;
+			int d1 = random.nextInt() % (temCar1.route.size() - 1) + 1;
+			int d2 = random.nextInt() % (temCar1.route.size() - 1) + 1;
+			if (d1 == d2)
+				continue;
+			//swap(temCar1.route[d1], temCar1.route[d2]);
+			int temp = temCar1.route.get(d1);
+			temCar1.route.set(d1, temCar1.route.get(d2));
+			temCar1.route.set(d2, temp);
+		}
+		for (int i = 0; i < num; ++i)
+		{
+			//路径为空的情况
+			if (temCar2.route.size() <= 2)
+				break;
+			int d1 = random.nextInt() % (temCar2.route.size() - 1) + 1;
+			int d2 = random.nextInt() % (temCar2.route.size() - 1) + 1;
+			if (d1 == d2)
+				continue;
+			//swap(temCar2.route[d1], temCar2.route[d2]);
+			int temp = temCar2.route.get(d1);
+			temCar2.route.set(d1, temCar2.route.get(d2));
+			temCar2.route.set(d2, temp);
+		}			
+	}
+}
+
+//群落初始化
+public Vector<Vector<CarRoute>> initPopulation( Vector<CarRoute> result)
+{
+	Vector<Vector<CarRoute>> results = new Vector<Vector<CarRoute>>();
+	for (int i = 0; i < POPULATION_NUM; ++i)
+	{
+		results.add(result);
+	}
+	return results;
+}
+
+
 
 	// 择优交叉，否则不变，随机单交叉
 	public void exchangeCarRoute2(CarRoute car1, CarRoute car2,
@@ -156,66 +286,7 @@ public class Ga {
 		}
 	}
 
-	//随机增加或删减，否则不变
-	public void addOrDeleteCarRoute2(CarRoute car1, CarRoute car2,  Vector<Vector<Integer>> distance,
-			Vector<Vector<Integer>> time,  Vector<Vehicle> vehicle,  Vector<Node> nodeList,  Vector<Node> charger)
-	{
-		CarRoute temCar1 = car1;
-		CarRoute temCar2 =car2;
-		double minCost = calOneCost(car1, vehicle) + calOneCost(car2, vehicle);
-		//typedef vector<int>::iterator Iter;
-		//Iterator Iter = temCar1.iterator();
-		int cir = REPEAT_NUM;
-		while (--cir > 0)
-		{
-			int num = rand() % CHANGE_NUM + 1;
-			for (int  i = 0; i < num; ++i)
-			{
-				//防止出现路径为空的情况
-				if (temCar1.route.size() == 2 && temCar2.route.size() == 2)
-				{
-					continue;
-				}
-				if (temCar1.route.size() == 2)
-					swap(temCar1, temCar2);
-				if (temCar1.route.size() == 1 || temCar2.route.size() == 1)
-					continue;
-				int d1 = rand() % (temCar1.route.size() - 1) + 1;
-				int d2 = rand() % (temCar2.route.size() - 1) + 1;
-				Iterator  iter1 = temCar1.route.begin() + d1;
-				Iterator  iter2 = temCar2.route.begin() + d2;
-				int deleteVal = *iter1;
-				temCar1.route.erase(iter1);
-				temCar2.route.insert(iter2, deleteVal);
-			}
-
-			if (isLegal(temCar1, distance, time, vehicle, nodeList, charger) 
-				&& isLegal(temCar2, distance, time, vehicle, nodeList, charger))
-			{
-				double cost1 = calOneCost(temCar1, vehicle);
-				double cost2 = calOneCost(temCar2, vehicle);
-				if (cost1 + cost2 < minCost ||
-					(rand() % 100 > JUMP_P && cost1 + cost2 - minCost < ACCEPT * minCost)) //效果好
-				{
-					car1 = temCar1;
-					car2 = temCar2;
-					minCost = cost1 + cost2;
-					return;
-				}
-				else  //用最好的结果，还原temCar的状态
-				{
-					temCar1 = car1;
-					temCar2 = car2 ;
-				}
-
-			}
-			else
-			{
-				temCar1 = car1;
-				temCar2 = car2;
-			}
-		}
-	}
+	
 	// 单车费用
 	public double calOneCost(CarRoute car, Vector<Vehicle> vehicle) {
 		// //保留两位小数

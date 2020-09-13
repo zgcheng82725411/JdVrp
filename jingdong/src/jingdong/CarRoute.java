@@ -1,5 +1,6 @@
 package jingdong;
 
+import java.util.List;
 import java.util.Vector;
 
 public class CarRoute {
@@ -17,4 +18,8 @@ public class CarRoute {
 	int chargeNum =0;
 	int totalMileage =0;
 
+	public List<Integer> getInterRoute()
+	{
+		return route;
+	}
 }

@@ -56,6 +56,10 @@ public class jingdong {
 
 		result = synchroSearch(seller, charger, distance, time, vehicle);
 
+		for(int i = 0;i < result.size();i++)
+		{
+			System.out.print(result.get(i).getInterRoute());
+		}
 		calAllCost(result, vehicle);
 		// 遗传算法
 		// inheritance(result, distance, time, vehicle, nodeList,charger);
@@ -302,8 +306,7 @@ public class jingdong {
 	}
 
 	// 货车curCar 不经过充电是否可以直接访问sell
-	private static boolean canVisit(CarRoute curCar, Vector<Vehicle> vehicle,
-			Node sell, Vector<Vector<Integer>> distance,
+	private static boolean canVisit(CarRoute curCar, Vector<Vehicle> vehicle, Node sell, Vector<Vector<Integer>> distance,
 			Vector<Vector<Integer>> time) {
 		curCar.curVolume += sell.volume;
 		curCar.curWeight += sell.weight;
@@ -566,18 +569,7 @@ public class jingdong {
 				curCost += distance.get(
 						curCar.route.get(curCar.route.size() - 1)).get(sell.id)
 						* vehicle.get(curCar.cartype - 1).unit_trans_cost;
-				// //等待花费,首次出发没有等待花费
-				// if (curCar.route.back()!=0)
-				// {
-				// int arriveTime = curCar.curTime -
-				// time[curCar.route.back()][0] +
-				// time[curCar.route.back()][sell.id];
-				// int waitT = sell.first_int_tm > arriveTime ?
-				// sell.first_int_tm - arriveTime : 0;
-				// curCost += 0.4 * waitT;
-
-				// }
-
+				
 				if (curCost < minvisitCost) {
 					carIndex = i;
 					minvisitCost = curCost;
@@ -591,28 +583,7 @@ public class jingdong {
 				// 路径花费
 				curCost += distance.get(
 						curCar.route.get(curCar.route.size() - 1)).get(sell.id)
-						* vehicle.get(curCar.cartype - 1).unit_trans_cost;
-				// int closeChargerIndex = findCharge(curCar, sell, distance,
-				// time, charger);
-				// curCost += (distance[curCar.route.back()][sell.id] +
-				// distance[sell.id][charger[closeChargerIndex].id])
-				// * vehicle[curCar.cartype - 1].unit_trans_cost;
-
-				// //充电花费
-				// curCost += 50;
-
-				// //等待花费
-				// if (curCar.route.back() != 0)
-				// {
-				// int arriveTime = curCar.curTime -
-				// time[curCar.route.back()][0] +
-				// time[curCar.route.back()][sell.id];
-				// int waitT = sell.first_int_tm > arriveTime ?
-				// sell.first_int_tm - arriveTime : 0;
-				// curCost += 0.4 * waitT;
-
-				// }
-
+						* vehicle.get(curCar.cartype - 1).unit_trans_cost;			
 				if (curCost < minvisitCost) {
 					carIndex = i;
 					minvisitCost = curCost;
@@ -630,7 +601,6 @@ public class jingdong {
 
 	{
 		int closeChargerIndex = sellMatchCharger.get(sell.id);
-
 		curCar.curVolume += sell.volume;
 		curCar.curWeight += sell.weight;
 
