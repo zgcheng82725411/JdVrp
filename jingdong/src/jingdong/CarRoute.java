@@ -18,8 +18,30 @@ public class CarRoute {
 	int chargeNum =0;
 	int totalMileage =0;
 
+	public CarRoute(CarRoute carRoute) {
+		curTime = carRoute.curTime;  //时间约束
+		curMileage = carRoute.curMileage;     //里程约束
+		curVolume = carRoute.curVolume;   //容量约束
+		curWeight= carRoute.curWeight;   //载重约束
+
+		cartype = carRoute.cartype;
+		route = new Vector<Integer>(carRoute.route);
+		leaveTime = carRoute.leaveTime;
+		backTime = carRoute.backTime;
+		waitTime= carRoute.waitTime;
+		chargeNum = carRoute.chargeNum;
+		totalMileage = carRoute.totalMileage;
+		
+	}
+	
+    public CarRoute() {
+		
+	}
+
 	public List<Integer> getInterRoute()
 	{
 		return route;
 	}
+	
+	
 }
