@@ -4,9 +4,14 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Vector;
 
+import com.sun.javafx.collections.MappingChange.Map;
+
+
 public class ReadFile {
+	private HashMap<Integer, Node> nodesMap = new HashMap<Integer, Node>();
 	public void read_node(Vector<Node> vec) throws IOException {
 		String strbuff;
 		BufferedReader data = new BufferedReader(new InputStreamReader(
@@ -33,7 +38,12 @@ public class ReadFile {
 				tempNode.last_int_tm = 960;
 				tempNode.isServer = false;
 				
-			} else if (lineNum > 1 && lineNum < 1001) {
+			} else if (lineNum > 1 && lineNum < 1002) {
+				if(lineNum == 1000)
+				{
+					int u =0;
+					u++;
+				}
 				double k = Double.valueOf(strcol[0]);
 				tempNode.id = (int) (k);
 				k = Double.valueOf(strcol[1]);
@@ -59,9 +69,15 @@ public class ReadFile {
 				tempNode.isServer = false;
 			}
 			vec.add(tempNode);
+			nodesMap.put(tempNode.id, tempNode);
 			strbuff = data.readLine();
 			lineNum++;
 		}
+	}
+	
+	public HashMap<Integer, Node> getNode()
+	{
+		return nodesMap;
 	}
 	
 	public  int changeTime(String str) // 把时间换成int

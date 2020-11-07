@@ -30,6 +30,9 @@ public class Ga {
 
 	// 可接受变差的范围
 	double ACCEPT = 0.01;
+	
+	//迟到次数
+	int overTimeOrWeight= 200000;
 
 	Random random = new Random();
 

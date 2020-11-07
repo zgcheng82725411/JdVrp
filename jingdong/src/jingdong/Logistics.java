@@ -2,25 +2,32 @@ package jingdong;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
+import java.util.function.IntUnaryOperator;
+
+import com.sun.javafx.collections.MappingChange.Map;
+import com.sun.org.apache.bcel.internal.generic.I2F;
+import com.sun.org.apache.regexp.internal.recompile;
 
 public class Logistics {
 
-	final int INIT_CAR_NUM = 170;
+	final int INIT_CAR_NUM = 200;
 
 	final double MAX_DOUBLE = 100000000;
 
-	Vector<Integer> sellMatchCharger = new Vector<Integer>();
-	public Vector<Integer> calSellChargerMatch(Vector<Integer> vec,
-			Vector<Vector<Integer>> distance, List<Node> charger,
+	HashMap<Integer, Integer> sellMatchCharger = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Integer> calSellChargerMatch(Vector<Vector<Integer>> distance, List<Node> charger,
 			List<Node> seller) {
+		HashMap<Integer, Integer> nearCharge = new HashMap<Integer, Integer>();
 		for (Node sell : seller) {
-			int chargerIndex = findCharge(sell, distance, charger);
-			vec.add(chargerIndex);
+			int chargerIndex = findCharge(sell, distance, charger);		
+			nearCharge.put(sell.id,charger.get(chargerIndex).id);
 		}
-		sellMatchCharger = vec;
-		return vec;
+		
+		sellMatchCharger = nearCharge;
+		return nearCharge;
 	}
 
 	public int findCharge(Node sell, Vector<Vector<Integer>> distance,
@@ -42,96 +49,138 @@ public class Logistics {
 			List<Node> charger, Vector<Vector<Integer>> distance,
 			Vector<Vector<Integer>> time, Vector<Vehicle> vehicle) {
 		Vector<CarRoute> result = initResult();
-		// 按照最晚到达时间最商铺排序
-		Collections.sort(seller, new Comparator<Node>() {
-			public int compare(Node node1, Node node2) {
-				if (node1.last_int_tm < node2.last_int_tm) {
-					return 1;
-				}
-				return 0;
-			}
-		});
+			
+		for (Node sell : seller) {
+			System.out.println(sell.id);
+		}
 
 		//遍历所有的点和车，每次都找最近的
+		int total = 0;
 		for (Node sell : seller) {
 			//找到最近的点,如果因为距离则返回-2，其他返回-1
+			
+			if(sell.id == 862)
+			{
+				int u  =0;
+				u++;
+			}
 			int carIndex = whichCarVisitThisSell(result, sell, charger,
 					distance, time, vehicle);
-			//如果没有，看是否能通过充电来获得
-			result.get(carIndex).getInterRoute().add(sell.id);
-		}		
+			if(carIndex == -1)
+			{
+				total++;
+				continue;
+			}
+			else
+			{
+				System.out.println(sell.id);
+			}
+			visitSeller(result.get(carIndex), sell, distance, time, vehicle);		
+		}
+		System.out.println(total);
+		
+		result = deleteEmptyCar(result);
+		
+		//加上回来的
+		addLastPoint(result, distance, vehicle);
+		calAllCost(result, vehicle);
+		
+		for(int i = 0;i < result.size();i++)
+		{
+			System.out.println(result.get(i).getInterRoute());
+		}
 		return result;
 	}
-
-
-	private void visitCharge(CarRoute curCar, Node charger,
-			Vector<Vector<Integer>> distance, Vector<Vector<Integer>> time) {
-		// 访问充电站
-		++curCar.chargeNum; // 充电次数+1
-		int lastIndex = curCar.route.get(curCar.route.size() - 1);
-
-		curCar.totalMileage = curCar.totalMileage
-				- distance.get(lastIndex).get(0)
-				+ distance.get(lastIndex).get(charger.id)
-				+ distance.get(charger.id).get(0);
-
-		curCar.curMileage = distance.get(charger.id).get(0);
-
-		int arriveTime = curCar.curTime - time.get(lastIndex).get(0)
-				+ time.get(lastIndex).get(charger.id);
-
-		curCar.curTime = arriveTime + 30 + time.get(charger.id).get(0);
-		// 到达时间+充电+返回
-
-		curCar.route.add(charger.id);
-		curCar.backTime = curCar.curTime;
+	
+	private void addLastPoint(Vector<CarRoute> result, Vector<Vector<Integer>> distance, Vector<Vehicle> vehicle) {
+		
+		for (CarRoute curCar : result) {
+			int lastIndex = curCar.route.get(curCar.route.size() - 1);
+							
+			curCar.curMileage += distance.get(lastIndex).get(0);	
+			if(curCar.curMileage > vehicle.get(curCar.cartype-1).driving_range)
+			{
+				curCar.chargeNum++;
+				
+				curCar.totalMileage = curCar.totalMileage
+						+ distance.get(lastIndex).get(sellMatchCharger.get(lastIndex))
+						+ distance.get(sellMatchCharger.get(lastIndex)).get(0);
+				curCar.curMileage = distance.get(sellMatchCharger.get(lastIndex)).get(0);
+			}
+			else {
+				curCar.totalMileage = curCar.totalMileage
+						+ distance.get(lastIndex).get(0);	
+			}
+		}	
+		
 	}
 
 	// 删除空的货车
-	public void deleteEmptyCar(Vector<CarRoute> result) {
+	public Vector<CarRoute> deleteEmptyCar(Vector<CarRoute> result) {
 		Vector<CarRoute> ret = new Vector<CarRoute>();
 		for (CarRoute car : result) {
 			if (car.route.size() > 1)
 				ret.add(car);
 		}
-		result = ret;
+		return ret;
 	}
 
 	private void visitSeller(CarRoute curCar, Node sell,
 			Vector<Vector<java.lang.Integer>> distance,
-			Vector<Vector<java.lang.Integer>> time) {
+			Vector<Vector<java.lang.Integer>> time, Vector<Vehicle> vehicle) {
 		// 访问sell商户
 		sell.isServer = true;
 		curCar.curVolume += sell.volume;
 		curCar.curWeight += sell.weight;
 
 		int lastIndex = curCar.route.get(curCar.route.size() - 1);
-		curCar.curMileage = curCar.curMileage
-				+ distance.get(lastIndex).get(sell.id)
-				+ distance.get(sell.id).get(0) - distance.get(lastIndex).get(0);
+		
+		int mileage = curCar.curMileage
+				+ distance.get(lastIndex).get(sell.id);
 
-		int arriveTime = curCar.curTime - time.get(lastIndex).get(0)
-				+ time.get(lastIndex).get(sell.id);
+		//判断是否充过电
+		int arriveTime;
+		if(mileage > vehicle.get(curCar.cartype - 1).driving_range)
+		{
+			curCar.chargeNum++;
+			curCar.totalMileage = curCar.totalMileage
+					+ distance.get(lastIndex).get(sellMatchCharger.get(sell.id))
+					+ distance.get(sellMatchCharger.get(sell.id)).get(sell.id);
+			curCar.curMileage = distance.get(sellMatchCharger.get(sell.id)).get(sell.id);
+			
+			arriveTime = curCar.curTime	+ time.get(lastIndex).get(sellMatchCharger.get(sell.id))
+					+ time.get(sellMatchCharger.get(sell.id)).get(sell.id);
+		}
+		else {
+			curCar.totalMileage = curCar.totalMileage
+					+ distance.get(lastIndex).get(sell.id);
+			curCar.curMileage += distance.get(lastIndex).get(sell.id);
+			arriveTime = curCar.curTime	+ time.get(lastIndex).get(sell.id);
+		}
+					
 		int waitT = sell.first_int_tm > arriveTime ? sell.first_int_tm
 				- arriveTime : 0;
 		// 更新出发时间,出发时间为 货车在第一次到达商户的等待时间
-		if (curCar.leaveTime == -1) {
-			curCar.leaveTime = waitT;
-		} else {
-			curCar.waitTime += waitT;
-		}
-
-		curCar.curTime = arriveTime + waitT + 30 + time.get(sell.id).get(0);
+		
+		curCar.waitTime += waitT;
+		
+		curCar.curTime = arriveTime + waitT + 30;
 		// 到达时间+等待+服务+返回
-
-		curCar.route.add(sell.id);
-		curCar.totalMileage = curCar.totalMileage
-				+ distance.get(lastIndex).get(sell.id)
-				+ distance.get(sell.id).get(0) - distance.get(lastIndex).get(0);
-
-		curCar.backTime = curCar.curTime;
-		// curCar.waitTime += waitT;
-
+		curCar.route.add(sell.id);				
+	}
+	
+	public double calAllCost( Vector<CarRoute> result,  Vector<Vehicle> vehicle)
+	{		
+		double all_cost = 0;
+		for (int i = 0; i < result.size(); ++i)
+		{
+			all_cost += result.get(i).totalMileage * vehicle.get(result.get(i).cartype - 1).unit_trans_cost;
+			all_cost += result.get(i).chargeNum * 50;
+			all_cost += result.get(i).waitTime * 0.4;
+			all_cost += vehicle.get(result.get(i).cartype - 1).vechile_cost;
+		}
+		System.out.println(all_cost);
+		return all_cost;
 	}
 
 	// 哪辆车去服务这家商铺
@@ -194,8 +243,7 @@ public class Logistics {
 					+ time.get(chargeindex).get(sell.id);
 			if (arriveTime > sell.last_int_tm)
 				return -1;
-			else {
-				//充电次数加1
+			else {		
 				return 1;
 			}			
 		}		
@@ -204,10 +252,17 @@ public class Logistics {
 	// 初始化vector<CarRoute> result
 	public Vector<CarRoute> initResult() {
 		Vector<CarRoute> result = new Vector<CarRoute>();
-		CarRoute car = new CarRoute();
-		car.route.add(0);
-		for (int i = 0; i < INIT_CAR_NUM; ++i) {
+		
+		for (int i = 0; i < INIT_CAR_NUM/2; ++i) {
+			CarRoute car = new CarRoute();
+			car.route.add(0);
 			car.cartype = 1;
+			result.add(car);
+		}
+		for (int i = 0; i < INIT_CAR_NUM/2; ++i) {
+			CarRoute car = new CarRoute();
+			car.route.add(0);
+			car.cartype = 2;
 			result.add(car);
 		}
 		return result;

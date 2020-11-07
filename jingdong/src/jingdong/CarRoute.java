@@ -17,6 +17,8 @@ public class CarRoute {
 	int waitTime=0;
 	int chargeNum =0;
 	int totalMileage =0;
+	
+	int overTimeAndWeight = 0;
 
 	public CarRoute(CarRoute carRoute) {
 		curTime = carRoute.curTime;  //Ê±¼äÔ¼Êø
@@ -38,10 +40,14 @@ public class CarRoute {
 		
 	}
 
-	public List<Integer> getInterRoute()
+	public Vector<Integer> getInterRoute()
 	{
 		return route;
 	}
 	
+	public void setInterRoute(Vector<Integer> indexsFrom)
+	{
+		this.route = indexsFrom;
+	}
 	
 }

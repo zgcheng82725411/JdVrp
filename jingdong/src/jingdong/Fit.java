@@ -5,6 +5,8 @@ import java.util.Vector;
 public class Fit {
 
 	Vector<CarRoute> routeList = new Vector<CarRoute>();
+	Vector<Vector<Integer>> route = new Vector<Vector<Integer>>();
+	Vector<Integer> type = new Vector<Integer>();
 	double fit;
 	
 	public void setFitness(double fit)
@@ -26,5 +28,21 @@ public class Fit {
 	{
 		routeList = list;
 	}
+	
+	public void setRouteIndex(Vector<Vector<Integer>> route)
+	{
+		this.route = route;
+	}
+	
+	public Vector<Vector<Integer>> getRouteIndex()
+	{
+		return route;
+	}
+	
+	public Vector<Integer> getCarTypeIndex()
+	{
+		return type;
+	}
+	
 		
 }
