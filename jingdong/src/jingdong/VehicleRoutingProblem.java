@@ -1,17 +1,12 @@
 package jingdong;
  
-/**
- * @author mnmlist@163.com
- * @date 2015/09/26
- * @time 22:24
- */
- 
-import java.util.Arrays;
 import java.util.Random;
 
-import org.omg.CORBA.INTERNAL;
- 
+//vrp
 public class VehicleRoutingProblem {
+	
+	public int []bestGhArrValueCode;
+	public int [] bestCode;
 	public double bestResultValue = 10000;
     static int max = 101;
     static int maxqvehicle = 1024;
@@ -46,11 +41,11 @@ public class VehicleRoutingProblem {
         int i, j;
         decodedEvaluation = 0;// 解码后所有车辆所走路程总和
         punishWeight = 300;// 车辆超额惩罚权重
-        clientNum = 20;// 客户数目,染色体长度
-        K = 5;// 最大车数目
+        clientNum = 32;// 客户数目,染色体长度
+        K = 4;// 最大车数目
         populationScale = 200;// 种群规模
         crossRate = 0.9;// 交叉概率
-        mutationRate = 0.1;// 变异概率，实际为(1-Pc)*0.9=0.09
+        mutationRate = 0.07;// 变异概率，实际为(1-Pc)*0.9=0.09
         T = 3000;// 进化代数
         bestFitness = 0;// 所有代数中最好的染色体的适应度
         vehicleInfoMatrix = new double[K
@@ -67,84 +62,57 @@ public class VehicleRoutingProblem {
         x1 = new double[clientNum + 1];
         y1 = new double[clientNum + 1];
         // 车辆最大载重和最大行驶
+        bestCode = new int[clientNum];
+        
+        bestGhArrValueCode = new int[clientNum];
         vehicleInfoMatrix[1][0] = 8.0;
-        vehicleInfoMatrix[1][1] = 50.0;
+        vehicleInfoMatrix[1][1] = 5000.0;
         vehicleInfoMatrix[2][0] = 8.0;
-        vehicleInfoMatrix[2][1] = 50.0;
+        vehicleInfoMatrix[2][1] = 5000.0;
         vehicleInfoMatrix[3][0] = 8.0;
-        vehicleInfoMatrix[3][1] = 50.0;
+        vehicleInfoMatrix[3][1] = 5000.0;
         vehicleInfoMatrix[4][0] = 8.0;
-        vehicleInfoMatrix[4][1] = 50.0;
-        vehicleInfoMatrix[5][0] = 8.0;
-        vehicleInfoMatrix[5][1] = 50.0;
-        vehicleInfoMatrix[6][0] = maxqvehicle;// 限制最大
-        vehicleInfoMatrix[6][1] = maxdvehicle;
+        vehicleInfoMatrix[4][1] = 5000.0;
+
+        vehicleInfoMatrix[5][0] = maxqvehicle;// 限制最大
+        vehicleInfoMatrix[5][1] = maxdvehicle;
  
         // 客户坐标
-        x1[0] = 14.5;
-        y1[0] = 13.0;
-        weightArr[0] = 0.0;
-        x1[1] = 12.8;
-        y1[1] = 8.5;
-        weightArr[1] = 0.1;
-        x1[2] = 18.4;
-        y1[2] = 3.4;
-        weightArr[2] = 0.4;
-        x1[3] = 15.4;
-        y1[3] = 16.6;
-        weightArr[3] = 1.2;
-        x1[4] = 18.9;
-        y1[4] = 15.2;
-        weightArr[4] = 1.5;
-        x1[5] = 15.5;
-        y1[5] = 11.6;
-        weightArr[5] = 0.8;
-        x1[6] = 3.9;
-        y1[6] = 10.6;
-        weightArr[6] = 1.3;
-        x1[7] = 10.6;
-        y1[7] = 7.6;
-        weightArr[7] = 1.7;
-        x1[8] = 8.6;
-        y1[8] = 8.4;
-        weightArr[8] = 0.6;
-        x1[9] = 12.5;
-        y1[9] = 2.1;
-        weightArr[9] = 1.2;
-        x1[10] = 13.8;
-        y1[10] = 15.2;
-        weightArr[10] = 0.4;
-        x1[11] = 6.7;
-        y1[11] = 16.9;
-        weightArr[11] = 0.9;
-        x1[12] = 14.8;
-        y1[12] = 7.6;
-        weightArr[12] = 1.3;
-        x1[13] = 1.8;
-        y1[13] = 8.7;
-        weightArr[13] = 1.3;
-        x1[14] = 17.1;
-        y1[14] = 11.0;
-        weightArr[14] = 1.9;
-        x1[15] = 7.4;
-        y1[15] = 1.0;
-        weightArr[15] = 1.7;
-        x1[16] = 0.2;
-        y1[16] = 2.8;
-        weightArr[16] = 1.1;
-        x1[17] = 11.9;
-        y1[17] = 19.8;
-        weightArr[17] = 1.5;
-        x1[18] = 13.2;
-        y1[18] = 15.1;
-        weightArr[18] = 1.6;
-        x1[19] = 6.4;
-        y1[19] = 5.6;
-        weightArr[19] = 1.7;
-        x1[20] = 9.6;
-        y1[20] = 14.8;
-        weightArr[20] = 1.5;
+        x1[0] = 14.5; y1[0] = 13.0; weightArr[0] = 0.0;
+        x1[1] = 12.8; y1[1] = 8.5; weightArr[1] = 0.0;
+        x1[2] = 18.4; y1[2] = 3.4; weightArr[2] = 0;
+        x1[3] = 15.4; y1[3] = 16.6; weightArr[3] = 0;
+        x1[4] = 18.9; y1[4] = 15.2; weightArr[4] =0;
+        x1[5] = 15.5; y1[5] = 11.6; weightArr[5] = 0;
+        x1[6] = 3.9; y1[6] = 10.6; weightArr[6] = 0;
+        x1[7] = 10.6; y1[7] = 7.6; weightArr[7] = 0;
+        x1[8] = 8.6; y1[8] = 8.4; weightArr[8] = 0;
+        x1[9] = 12.5; y1[9] = 2.1; weightArr[9] = 0;
+        x1[10] = 13.8; y1[10] = 15.2; weightArr[10] = 0;
+        x1[11] = 6.7; y1[11] = 16.9; weightArr[11] = 0;
+        x1[12] = 14.8; y1[12] = 7.6; weightArr[12] = 0;
+        x1[13] = 1.8; y1[13] = 8.7; weightArr[13] = 0;
+        x1[14] = 17.1; y1[14] = 11.0; weightArr[14] = 0;
+        x1[15] = 7.4; y1[15] = 1.0; weightArr[15] = 0;
+        x1[16] = 0.2; y1[16] = 2.8; weightArr[16] = 0;
+        x1[17] = 11.9; y1[17] = 19.8; weightArr[17] = 0;
+        x1[18] = 5.2; y1[18] = 15.1; weightArr[18] = 0;
+        x1[19] = 11.4; y1[19] = 5.6; weightArr[19] = 0;
+        x1[20] = 17.6; y1[20] = 14.8; weightArr[20] = 0;
+        x1[21] = 4.7; y1[21] = 6.9; weightArr[21] = 0;
+        x1[22] = 19.8; y1[22] = 17.6; weightArr[22] = 0;
+        x1[23] = 3.8; y1[23] = 12.7; weightArr[23] = 0;
+        x1[24] = 12.1; y1[24] = 15.0; weightArr[24] = 0;
+        x1[25] = 2.4; y1[25] = 10.0; weightArr[25] = 0;
+        x1[26] = 5.2; y1[26] = 21.8; weightArr[26] = 0;
+        x1[27] = 10.9; y1[27] = 19.8; weightArr[27] = 0;
+        x1[28] = 9.2; y1[28] = 5.1; weightArr[28] = 0;
+        x1[29] = 1.4; y1[29] = 15.6; weightArr[29] =0;
+        x1[30] = 8.6; y1[30] = 4.8; weightArr[30] = 0;
  
+        x1[31] = 1.7; y1[31] = 18.6; weightArr[31] =0;
+        x1[32] = 11.6; y1[32] = 15.8; weightArr[32] = 0;
+        
         double x = 0, y = 0;
         // 客户之间距离
         int endIndex = clientNum + 1;
@@ -244,13 +212,7 @@ public class VehicleRoutingProblem {
                 randomNum = ra.nextInt(clientNum);
                 swap(oldMatrix[k], i, randomNum);
             }
-        }
- 
-        // 显示初始化种群
-        //		System.out.println("///显示初始种群开始(In initGroup method)");
-        //		for (k = 0; k < populationScale; k++)
-        //			System.out.println(Arrays.toString(oldMatrix[k]));
-        //		System.out.println("///显示初始种群结束");
+        }  
     }
  
     public void swap(int arr[], int index1, int index2) {
@@ -276,7 +238,7 @@ public class VehicleRoutingProblem {
         }
     }
  
-    // 复制染色体，k表示新染色体在种群中的位置，kk表示旧的染色体在种群中的位置
+    //复制染色体，k表示新染色体在种群中的位置，kk表示旧的染色体在种群中的位置
     void copyChrosome(int k, int kk) {
         System.arraycopy(oldMatrix[kk], 0, newMatrix[k], 0, clientNum);
     }
@@ -290,14 +252,15 @@ public class VehicleRoutingProblem {
         for (k = 1; k < populationScale; k++) {
             if (maxevaluation < fitnessArr[k]) {
                 maxevaluation = fitnessArr[k];
-                maxid = k;
+                maxid = k;               
             }
         }
  
         if (bestFitness < maxevaluation) {
             bestFitness = maxevaluation;
             bestGenerationNum = t;// 最好的染色体出现的代数;
-            System.arraycopy(oldMatrix[maxid], 0, bestGhArr, 0, clientNum);
+            System.arraycopy(oldMatrix[maxid], 0, bestCode, 0, clientNum);
+            
         }
         // 复制染色体，k表示新染色体在种群中的位置，kk表示旧的染色体在种群中的位置
         copyChrosome(0, maxid);// 将当代种群中适应度最高的染色体k复制到新种群中，排在第一位0
@@ -327,7 +290,7 @@ public class VehicleRoutingProblem {
         ran2 = ra.nextInt(clientNum);
         while (ran1 == ran2)
             ran2 = ra.nextInt(clientNum);
-        if (ran1 > ran2)// 确保ran1<ran2
+        if (ran1 > ran2)
         {
             temp = ran1;
             ran1 = ran2;
@@ -335,6 +298,7 @@ public class VehicleRoutingProblem {
         }
         flag = ran2 - ran1 + 1;// 删除重复基因前染色体长度
  
+        //中间片段复制
         for (i = 0, j = ran1; i < flag; i++, j++) {
             Gh1[i] = newMatrix[k2][j];
             Gh2[i] = newMatrix[k1][j];
@@ -373,7 +337,6 @@ public class VehicleRoutingProblem {
         while (ran1 == ran2)
             ran2 = ra.nextInt(clientNum);
         swap(newMatrix[k], ran1, ran2);
- 
     }
  
     // 进化函数，保留最优
@@ -413,6 +376,16 @@ public class VehicleRoutingProblem {
  
     }
  
+    public int[] bestCode()
+    {
+    	return bestCode;
+    }
+    
+    public int[] getbestGhArrValueCode()
+    {
+    	return bestGhArrValueCode;
+    }
+    
     public BestResult solveVrp() {
         int i, j, k;
         BestResult bestResult = new BestResult();
@@ -448,31 +421,18 @@ public class VehicleRoutingProblem {
             countRate();
             // 进度条
             
+            int[] bestGhArrValue = new int[clientNum];
             if(bestFitness < bestResultValue)
             {
             	bestResultValue = bestFitness;
-            	
+            	System.arraycopy(bestCode, 0, bestGhArrValue, 0, clientNum);    
+            	System.arraycopy(bestCode, 0, bestGhArrValueCode, 0, clientNum);
+            	bestResult.setbestCode(bestCode);
             }         
         }
-        // 最后种群
-        //		System.out.println("//");
-        //		for (k = 0; k < populationScale; k++)
-        //			System.out.println(Arrays.toString(oldMatrix[k]));
-        //		System.out.println("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\t");
-        // 出现代数
-       // System.out.println("最好的代数出现在：" + bestGenerationNum + "代");
-        // 染色体评价值
-       
-       // System.out.println("最好的结果为：" + (10 / bestFitness) + "或" + bestFitness);
-        // 最好的染色体
-      //  System.out.println(Arrays.toString(bestGhArr));
-        // 最好的染色体解码
+                   
         decoding(bestGhArr);
-        // 使用车数
-       // System.out.println("使用车数：" + KK);
-        // 解码
-       // System.out.println("车辆解码：" + Arrays.toString(decodedArr));
-      //  System.out.println("车辆行驶距离解码：" + decodedEvaluation);
+      
         String tefa = "";
         int tek;
         int[] templ = new int[max];
@@ -489,38 +449,41 @@ public class VehicleRoutingProblem {
             templ[k] = 0;
             templ[0] = k;
             tefa = k + "-" + tefa + "0";
-           // System.out.println(tefa);
+          
         }
         bestResult.setBestFitness(10 / bestFitness);
         bestResult.setBestGenerationNum(bestGenerationNum);
+        
+        bestResult.setbestCode(bestCode);
         return bestResult;
     }
  
     public static void main(String[] args) {
         VehicleRoutingProblem vehicleRoutingProblem = new VehicleRoutingProblem();
-        int count = 50;
+        int count = 500;
         double generationNum = 0;
         double totalFitness = 0;
-        BestResult bestResult = null;
+    
         double bestResultValue = 10000;
-        for (int i = 0; i < count; i++) {
-          //  System.out.println(
-          //          "/the " + (i + 1) + "iteration start...");
+        int bestCode[] = null;
+        for (int i = 0; i < count; i++) {  
+        	BestResult bestResult = new BestResult();
             bestResult = vehicleRoutingProblem.solveVrp();
             totalFitness += bestResult.getBestFitness();
             generationNum += bestResult.getBestGenerationNum();
             if(bestResultValue > bestResult.getBestFitness())
             {
-            	bestResultValue = bestResult.getBestFitness();
-            }
-          //  System.out.println(
-         //           "/the " + (i + 1) + "iteration end...");
-         //   System.out.println();
-        }
+            	bestResultValue = bestResult.getBestFitness();     
+            	bestCode = bestResult.getbestCode();
+            }      
+       }
        System.out.println(bestResultValue);
-       // System.out.println("平均在第" + (generationNum / count) + "代找到最有解。");
-       // System.out.println("平均的路成为：" + (totalFitness / count));
- 
+       for(int i = 0;i < bestCode.length;i++)
+       {
+    	   System.out.print(bestCode[i]);
+    	   System.out.print("-");
+       }
+    
     }
 }
  
@@ -528,6 +491,7 @@ class BestResult {
     private double bestFitness;
     private int bestGenerationNum;
  
+    int[] bestCode;
     public int getBestGenerationNum() {
         return bestGenerationNum;
     }
@@ -543,5 +507,15 @@ class BestResult {
     public void setBestFitness(double bestFitness) {
         this.bestFitness = bestFitness;
     }
- 
+    
+    public int[] getbestCode()
+    {  	
+		return bestCode;
+    }
+    
+    public void setbestCode(int[] bestCode)
+    {
+    	this.bestCode = bestCode;
+    }
+    
 }
